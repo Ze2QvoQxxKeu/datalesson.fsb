@@ -38,8 +38,8 @@ begin
   SetLength(Result, Succ(Random(10)));
   for i := 1 to Length(Result) do
     repeat
-      Result[i] := Chr(Random(256));
-    until CharInSet(Result[i], ['А'..'Я', 'а'..'я', 'Ё', 'ё']);
+      Result[i] := Chr(Random(128));
+    until CharInSet(Result[i], ['A'..'Z', '0'..'9']);
 end;
 
 procedure TfMain.ПолучитьClick(Sender: TObject);
@@ -105,9 +105,13 @@ begin
       Free;
     end;
   finally
-    FreeAndNil(SS);
+    SS.Clear;
+    SS.Free;
   end;
 end;
+
+initialization
+  Randomize;
 
 end.
 
