@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, System.SysUtils, System.RegularExpressions, System.StrUtils,
   System.Classes, Vcl.Controls, Vcl.Forms, System.Net.HttpClient, Vcl.StdCtrls,
-  Vcl.ExtCtrls;
+  Vcl.ExtCtrls, Vcl.Dialogs, Winapi.ShellAPI;
 
 type
   TfMain = class(TForm)
@@ -13,7 +13,6 @@ type
     Регион: TLabeledEdit;
     Город: TLabeledEdit;
     Имя: TLabeledEdit;
-    Мыло: TLabeledEdit;
     Жертва: TComboBox;
     Label1: TLabel;
     Класс: TComboBox;
@@ -21,7 +20,15 @@ type
     Школа: TLabeledEdit;
     Label3: TLabel;
     Пол: TComboBox;
+    Урок: TComboBox;
+    Label4: TLabel;
+    SaveDlg: TSaveDialog;
+    КодСессии: TLabeledEdit;
+    Данные: TPanel;
+    Общее: TPanel;
     procedure ПолучитьClick(Sender: TObject);
+    procedure КодСессииChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   end;
 
 var
@@ -42,6 +49,19 @@ begin
     until CharInSet(Result[i], ['A'..'Z', '0'..'9']);
 end;
 
+procedure TfMain.FormCreate(Sender: TObject);
+begin
+  Height := 308;
+end;
+
+procedure TfMain.КодСессииChange(Sender: TObject);
+begin
+  if Trim(КодСессии.Text).Length = 12 then
+    Height := 142
+  else if Height = 142 then
+    Height := 308;
+end;
+
 procedure TfMain.ПолучитьClick(Sender: TObject);
 
   function Дисциплины: string;
@@ -59,44 +79,64 @@ procedure TfMain.ПолучитьClick(Sender: TObject);
 
 const
   ЖЕРТВЫ: array[0..2] of string = ('student', 'teacher', 'parent');
+  УРОКИ: array[0..1] of string = ('bigdata', 'cdw');
 var
   SS: TStringStream;
+  MS: TMemoryStream;
 begin
+  SaveDlg.InitialDir := ExtractFilePath(ParamStr(0));
+  SaveDlg.FileName := Format('cert_%s.pdf', [Уроки[Урок.ItemIndex]]);
+  if not SaveDlg.Execute(Handle) then
+    Exit;
+  if Trim(Регион.Text).IsEmpty then
+    Регион.Text := Random(MaxInt).ToString;
+  if Trim(Город.Text).IsEmpty then
+    Город.Text := Random(MaxInt).ToString;
+  if Trim(Школа.Text).IsEmpty then
+    Школа.Text := Random(MaxInt).ToString;
+  if Trim(Имя.Text).IsEmpty then
+    Имя.Text := 'урокцифры.фсб';
   SS := TStringStream.Create(Format('{"age_group":%d,"type":"%s","region":"%s","state":"%s"'
     + ',"vk_id":%s,"class_no":%d,"school":"%s","discipline":[%s],"children_ages":[%s],"student_info":[{"age":%s,"sex":"%s"}]}',
-    [Succ(Класс.ItemIndex), ЖЕРТВЫ[Жертва.ItemIndex], Trim(Регион.Text),
-    Trim(Город.Text), Random(MaxInt).toString, Succ(Random(11)), Trim(Школа.Text), Дисциплины,
-    (7 + Random(11)).toString, (18 + Random(50)).toString,
-    IfThen(Пол.ItemIndex = 0, 'male', 'female')]), TEncoding.UTF8);
+    [Succ(Класс.ItemIndex), ЖЕРТВЫ[Жертва.ItemIndex], Trim(Регион.Text), Trim(Город.Text),
+    Random(MaxInt).toString, Succ(Random(11)), Trim(Школа.Text), Дисциплины, (7
+    + Random(11)).toString, (18 + Random(50)).toString, IfThen(Пол.ItemIndex = 0,
+    'male', 'female')]), TEncoding.UTF8);
   try
     with THTTPClient.Create do
     try
       ContentType := 'application/json; charset=utf-8';
-      UserAgent := 'Mozilla/5.0 Mail.Ru Отъебись!!!';
+      UserAgent := 'Mozilla/5.0 урокцифры.фсб';
       try
-        with Post('https://form.datalesson.ru/api/v1/auth', SS) do
+        with Post(IfThen(Trim(КодСессии.Text).Length <> 12,
+          'https://form.datalesson.ru/api/v1/auth', //
+          Format('https://form.datalesson.ru/api/v1/auth_by_code?code=%s', [Trim
+          (КодСессии.Text)])), SS) do
         begin
           with TRegEx.Match(ContentAsString(), 'user_id\"\:\"([^\"]+)') do
             if Success then
             begin
-              SS.Clear;
-              SS.WriteString(Format('{"name":"%s","email":"%s"}', [Trim(Имя.Text),
-                Trim(Мыло.Text)]));
-              SS.Position := 0;
-              with Post(Format('https://form.datalesson.ru/api/v1/certificates/student/%s/send',
-                [Groups[1].Value]), SS) do
-              begin
-                if ContentAsString().Equals('{"data":{}}') then
-                  Application.MessageBox(PChar(Format('СертиФикат выслан на почту "%s"',
-                    [Trim(Мыло.Text)])), 'Готово', MB_ICONINFORMATION)
-                else
-                  Application.MessageBox(PChar('Не сожрал:'#13#10 +
-                    ContentAsString(TEncoding.UTF8)), 'Ошибка', MB_ICONERROR);
+              MS := TMemoryStream.Create;
+              try
+                Get(Format('https://form.datalesson.ru/api/v1/certificates/student/%s?challenge_type=%s&name=%s',
+                  [Groups[1].Value, Уроки[Урок.ItemIndex], Trim(Имя.Text)]), MS);
+                try
+                  MS.SaveToFile(SaveDlg.FileName);
+                  if Application.MessageBox('Сертификат сохранён. Открыть для просмотра?', 'Готово',
+                    MB_ICONQUESTION or MB_YESNO) = IDYES then
+                    ShellExecute(Handle, 'open', PChar(SaveDlg.FileName), nil,
+                      nil, SW_SHOWNORMAL);
+                except
+                  Application.MessageBox('Ошибка сохранения сертификата',
+                    'Ошибка', MB_ICONERROR);
+                end;
+              finally
+                FreeAndNil(MS);
               end;
             end
             else
-              Application.MessageBox(PChar('Не сожрал:'#13#10 + ContentAsString(TEncoding.UTF8)),
-                'Ошибка', MB_ICONERROR);
+              Application.MessageBox(PChar('Текст ответа:'#13#10 +
+                ContentAsString(TEncoding.UTF8)), 'Ошибка', MB_ICONERROR);
         end;
       except
         raise Exception.Create('Ошибка отправки');
@@ -105,8 +145,7 @@ begin
       Free;
     end;
   finally
-    SS.Clear;
-    SS.Free;
+    FreeAndNil(SS);
   end;
 end;
 
