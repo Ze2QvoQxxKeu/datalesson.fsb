@@ -79,7 +79,7 @@ procedure TfMain.ПолучитьClick(Sender: TObject);
 
 const
   ЖЕРТВЫ: array[0..2] of string = ('student', 'teacher', 'parent');
-  УРОКИ: array[0..1] of string = ('bigdata', 'cdw');
+  УРОКИ: array[0..2] of string = ('mail', 'cdw', 'da');
 var
   SS: TStringStream;
   MS: TMemoryStream;

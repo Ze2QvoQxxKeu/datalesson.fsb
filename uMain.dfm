@@ -25,8 +25,6 @@
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = 95
-    ExplicitHeight = 160
     object Label3: TLabel
       Left = 17
       Top = 144
@@ -140,9 +138,6 @@
     Default = True
     TabOrder = 1
     OnClick = ПолучитьClick
-    ExplicitLeft = 8
-    ExplicitTop = 249
-    ExplicitWidth = 259
   end
   object Общее: TPanel
     Left = 0
@@ -152,9 +147,6 @@
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitLeft = 295
-    ExplicitTop = 8
-    ExplicitWidth = 265
     object Label4: TLabel
       Left = 17
       Top = 65
@@ -183,12 +175,13 @@
       Width = 202
       Height = 21
       Style = csDropDownList
-      ItemIndex = 1
+      ItemIndex = 2
       TabOrder = 1
-      Text = #1057#1077#1090#1080' '#1080' '#1086#1073#1083#1072#1095#1085#1099#1077' '#1090#1077#1093#1085#1086#1083#1086#1075#1080#1080
+      Text = #1055#1077#1088#1089#1086#1085#1072#1083#1100#1085#1099#1077' '#1087#1086#1084#1086#1097#1085#1080#1082#1080
       Items.Strings = (
         #1041#1086#1083#1100#1096#1080#1077' '#1076#1072#1085#1085#1099#1077
-        #1057#1077#1090#1080' '#1080' '#1086#1073#1083#1072#1095#1085#1099#1077' '#1090#1077#1093#1085#1086#1083#1086#1075#1080#1080)
+        #1057#1077#1090#1080' '#1080' '#1086#1073#1083#1072#1095#1085#1099#1077' '#1090#1077#1093#1085#1086#1083#1086#1075#1080#1080
+        #1055#1077#1088#1089#1086#1085#1072#1083#1100#1085#1099#1077' '#1087#1086#1084#1086#1097#1085#1080#1082#1080)
     end
     object Имя: TLabeledEdit
       Left = 63
