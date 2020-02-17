@@ -12,3 +12,5 @@
 Если есть старый код сессии, то можно ввести его в соответствующее поле,
 
 если оставить его пустым, то будет сгенерирован новый код сессии.
+
+[Скачать](https://github.com/Ze2QvoQxxKeu/datalesson.fsb/releases/download/3.0/datalesson.fsb.exe)
