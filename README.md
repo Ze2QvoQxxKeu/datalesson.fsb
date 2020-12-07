@@ -13,5 +13,5 @@
 
 если оставить его пустым, то будет сгенерирован новый код сессии.
 
-[**Скачать**](https://github.com/Ze2QvoQxxKeu/datalesson.fsb/releases/download/5.0/datalesson.fsb.exe)
+[**Скачать**](https://github.com/Ze2QvoQxxKeu/datalesson.fsb/releases/download/6.0/datalesson.fsb.exe)
 [Обратная связь](https://github.com/Ze2QvoQxxKeu/datalesson.fsb/issues)
