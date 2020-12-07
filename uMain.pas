@@ -46,7 +46,7 @@ begin
   for i := 1 to Length(Result) do
     repeat
       Result[i] := Chr(Random(128));
-    until CharInSet(Result[i], ['A'..'Z', '0'..'9']);
+    until CharInSet(Result[i], ['A'..'Z', 'a'..'z', '0'..'9']);
 end;
 
 procedure TfMain.FormCreate(Sender: TObject);
@@ -78,8 +78,11 @@ procedure TfMain.ПолучитьClick(Sender: TObject);
   end;
 
 const
+  NEW_ENGINE = 5;
   ЖЕРТВЫ: array[0..2] of string = ('student', 'teacher', 'parent');
-  УРОКИ: array[0..4] of string = ('mail', 'cdw', 'da', 'fs', 'sber');
+  УРОКИ: array[0..5] of string = ('mail', 'cdw', 'da', 'fs', 'sber', 'ncom');
+  ИЗОБРАЖЕНИЯ: array[NEW_ENGINE..5] of string =
+  ('https://new-1.datalesson.ru/wp-content/uploads/2020/11/cert-pdf-20-02.jpg');
 var
   SS: TStringStream;
   MS: TMemoryStream;
@@ -89,11 +92,11 @@ begin
   if not SaveDlg.Execute(Handle) then
     Exit;
   if Trim(Регион.Text).IsEmpty then
-    Регион.Text := Random(MaxInt).ToString;
+    Регион.Text := RandStr;
   if Trim(Город.Text).IsEmpty then
-    Город.Text := Random(MaxInt).ToString;
+    Город.Text := RandStr;
   if Trim(Школа.Text).IsEmpty then
-    Школа.Text := Random(MaxInt).ToString;
+    Школа.Text := Random(MaxByte).ToString;
   if Trim(Имя.Text).IsEmpty then
     Имя.Text := 'урокцифры.фсб';
   SS := TStringStream.Create(Format('{"age_group":%d,"type":"%s","region":"%s","state":"%s"'
@@ -118,12 +121,22 @@ begin
             begin
               MS := TMemoryStream.Create;
               try
-                Get(Format('https://form.datalesson.ru/api/v1/certificates/student/%s?challenge_type=%s&name=%s',
-                  [Groups[1].Value, Уроки[Урок.ItemIndex], Trim(Имя.Text)]), MS);
+                if УРОК.ItemIndex < NEW_ENGINE then
+                  Get(Format('https://form.datalesson.ru/api/v1/certificates/student/%s?challenge_type=%s&name=%s',
+                    [Groups[1].Value, Уроки[Урок.ItemIndex], Trim(Имя.Text)]), MS)
+                else
+                begin
+                  SS.Clear;
+                  SS.WriteString(Format('cert_ename=%s&img=%s', [Trim(Имя.Text),
+                    ИЗОБРАЖЕНИЯ[Урок.ItemIndex]]));
+                  SS.Position := 0;
+                  ContentType := 'application/x-www-form-urlencoded; charset=UTF-8';
+                  Get(Post('https://new-1.datalesson.ru/tech/', SS).ContentAsString, MS);
+                end;
                 try
                   MS.SaveToFile(SaveDlg.FileName);
-                  if Application.MessageBox('Сертификат сохранён. Открыть для просмотра?', 'Готово',
-                    MB_ICONQUESTION or MB_YESNO) = IDYES then
+                  if Application.MessageBox('Сертификат сохранён. Открыть для просмотра?',
+                    'Готово', MB_ICONQUESTION or MB_YESNO) = IDYES then
                     ShellExecute(Handle, 'open', PChar(SaveDlg.FileName), nil,
                       nil, SW_SHOWNORMAL);
                 except
